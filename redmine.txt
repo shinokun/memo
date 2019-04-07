@@ -1,0 +1,8 @@
+yum update
+
+yum install  bzip2 wget nano lsb_release
+
+lsb_release -a
+
+wget --no-check-certificate http://www.redmine.org/releases/redmine-4.0.3.tar.gz
+

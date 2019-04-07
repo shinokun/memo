@@ -1,0 +1,38 @@
+ÅI“I‚É
+
+rpm -ivh http://packages.groonga.org/centos/groonga-release-1.1.0-1.noarch.rpm
+yum makecache
+yum update
+
+yum install  bzip2 wget nano mecab  mecab-ipadic mecab-devel glibc-devel git make curl sed tar grep patch which file openssl gcc libgcc libxslt-devel  gcc-c++ libgcc
+
+
+wget https://repo.anaconda.com/archive/Anaconda3-2019.03-Linux-x86_64.sh
+
+bash Anaconda3-2019.03-Linux-x86_64.sh
+
+source .bashrc
+conda update -c conda-forge --all
+
+conda create -n qa_s python=3.7.3
+
+conda activate qa_s
+conda install -c conda-forge flask swig tensorflow
+
+¡’Ç‰ÁŽ«‘
+https://qiita.com/sudo5in5k/items/f89d9dc1bec1ed221ede
+
+git clone https://github.com/neologd/mecab-ipadic-neologd.git
+cd mecab-ipadic-neologd
+sudo bin/install-mecab-ipadic-neologd
+
+pip install --upgrade gensim==3.5.0
+
+pip install mecab-python3
+
+systemctl start crond
+crontab -e
+
+ 00 03 * * 2 /home/shino/mecab-ipadic-neologd/bin/install-mecab-ipadic-neologd -n -y -u -p /usr/lib64/mecab/dic/mecab-ipadic-neologd > /usr/lib64/mecab/dic/mecab-ipadic-neologd/update.log
+ 00 03 * * 5 /home/shino/mecab-ipadic-neologd/bin/install-mecab-ipadic-neologd -n -y -u -p /usr/lib64/mecab/dic/mecab-ipadic-neologd > /usr/lib64/mecab/dic/mecab-ipadic-neologd/update.log
+
