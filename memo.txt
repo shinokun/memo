@@ -1,0 +1,8 @@
+Jupyterで複数カーネルを簡単に選択するための設定
+https://qiita.com/tomochiii/items/8b937f15c79a0c3eae0e
+
+windows MeCab
+https://qiita.com/menon/items/f041b7c46543f38f78f7
+
+pythonパッケージの作り方
+https://qiita.com/ren094275/items/5d42f7c6be8c5d3cd014
