@@ -6,3 +6,11 @@ https://qiita.com/menon/items/f041b7c46543f38f78f7
 
 pythonパッケージの作り方
 https://qiita.com/ren094275/items/5d42f7c6be8c5d3cd014
+
+condaリポジトリ追加
+https://qiita.com/yuomori/items/9fcbbdf07afd16b6365c
+
+フォント
+http://to-codes.cocolog-wbs.com/blog/2017/10/pygame-8f10.html
+
+https://py.minitukuc.com/2017/10/26/font/
