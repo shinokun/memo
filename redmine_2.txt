@@ -1,0 +1,248 @@
+https://corgi-lab.com/linux/bitnami-install-redmine/
+これはいける。
+----------------------------------------------------
+https://kusomemo.tokyo/tech/centos7-redmine-install/
+
+これもいける。（Ruby2.5.5　redmine4.0.3）
+
+事前準備
+#ipv6の無効化
+vi /etc/sysctl.conf
+--------------------------------------
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+--------------------------------------
+sysctl -p
+
+HPに戻る
+
+#bundlerのインストール部位
+
+gem search ^bundler$ --all
+
+gem install bundler -v 1.17.3
+
+HPに戻る
+
+redmineは4.0にする
+wget http://www.redmine.org/releases/redmine-4.0.3.tar.gz
+
+svn co https://svn.redmine.org/redmine/branches/4.0-stable/ /var/lib/redmine
+
+LoadModule passenger_module /usr/local/lib/ruby/gems/2.5.0/gems/passenger-5.1.12/buildout/apache2/mod_passenger.so
+<IfModule mod_passenger.c>
+  PassengerRoot /usr/local/lib/ruby/gems/2.5.0/gems/passenger-5.1.12
+  PassengerDefaultRuby /usr/local/bin/ruby
+</IfModule>
+
+
+----------------------------------------------------
+https://qiita.com/yuki476/items/9d2ec757c6fcd1e1d931
+
+これはredmineが表示されない。
+
+firewall-cmd --zone=public --add-service=http --permanent
+firewall-cmd --reload
+firewall-cmd --zone=public --list-services
+yum -y groupinstall "Development Tools";
+yum -y install openssl-devel readline-devel zlib-devel curl-devel libyaml-devel libffi-devel;
+yum -y install postgresql-server postgresql-devel;
+yum -y install httpd httpd-devel;
+yum -y install ImageMagick ImageMagick-devel ipa-pgothic-fonts
+
+
+yum -y update
+
+
+cd /usr/local;
+sudo git clone https://github.com/rbenv/rbenv.git rbenv;
+sudo mkdir /usr/local/rbenv/shims;
+sudo mkdir /usr/local/rbenv/versions;
+echo 'export RBENV_ROOT=/usr/local/rbenv' | sudo tee -a  /etc/profile.d/rbenv.sh;
+echo 'export PATH="$RBENV_ROOT/bin:$PATH"' | sudo tee -a  /etc/profile.d/rbenv.sh;
+echo 'eval "$(rbenv init -)"' | sudo tee -a  /etc/profile.d/rbenv.sh;
+source /etc/profile.d/rbenv.sh;
+sudo visudo
+
+--
+#Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin
+Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/rbenv/bin:/usr/local/rbenv/shims
+Defaults    env_keep += "RBENV_ROOT"
+--
+git clone https://github.com/rbenv/ruby-build.git  rbenv/plugins/ruby-build;
+sudo rbenv/plugins/ruby-build/install.sh
+
+rbenv install -l | grep 2.4.4
+sudo rbenv install 2.4.4;
+sudo rbenv rehash;
+sudo rbenv global 2.4.4;
+ruby -v
+
+#ipv6の無効化
+vi /etc/sysctl.d/disable_ipv6.conf
+--------------------------------------
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+--------------------------------------
+sysctl -p/etc/sysctl.d/disable_ipv6.conf
+
+
+#gem install bundler -v 2.0.0
+
+https://rubygems.org/pages/download
+zipを/home/shinoに持ってきて、unzip
+
+ruby setup.rb
+https://qiita.com/YumaInaura/items/64e5721549e4927ce85f
+
+gem install bundler -v 1.17.3
+
+postgresql-setup initdb
+
+nano /var/lib/pgsql/data/pg_hba.conf
+
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+########## ↓ この部分を追記 #############################################
+host    redmine         redmine         127.0.0.1/32            md5
+host    redmine         redmine         ::1/128                 md5
+##########################################################################
+
+systemctl start postgresql.service
+systemctl enable postgresql.service
+
+cd /var/lib/pgsql
+sudo -u postgres createuser -P redmine
+sudo -u postgres createdb -E UTF-8 -l ja_JP.UTF-8 -O redmine -T template0 redmine
+
+svn co https://svn.redmine.org/redmine/branches/3.4-stable /var/lib/redmine
+
+cd /var/lib/redmine/config;
+cp database.yml.example database.yml
+
+nano database.yml
+
+cp configuration.yml.example configuration.yml
+
+cd /var/lib/redmine/;
+bundle install --without development test --path vendor/bundle
+#bundlerが1.5.0以上2.0.0未満じゃないと動かない
+
+bundle exec rake generate_secret_token
+
+RAILS_ENV=production bundle exec rake db:migrate
+RAILS_ENV=production REDMINE_LANG=ja bundle exec rake redmine:load_default_data
+
+gem install passenger
+
+passenger-install-apache2-module --auto --languages ruby
+passenger-install-apache2-module --snippet
+
+--------------------------------------
+
+LoadModule passenger_module /usr/local/rbenv/versions/2.4.4/lib/ruby/gems/2.4.0/gems/passenger-6.0.2/buildout/apache2/mod_passenger.so
+<IfModule mod_passenger.c>
+  PassengerRoot /usr/local/rbenv/versions/2.4.4/lib/ruby/gems/2.4.0/gems/passenger-6.0.2
+  PassengerDefaultRuby /usr/local/rbenv/versions/2.4.4/bin/ruby
+</IfModule>
+--------------------------------------
+
+
+nano /etc/httpd/conf.d/redmine.conf
+--------------------------------------
+
+<Directory "/var/lib/redmine/public">
+  Require all granted
+</Directory>
+
+LoadModule passenger_module /usr/local/rbenv/versions/2.4.4/lib/ruby/gems/2.4.0/gems/passenger-6.0.2/buildout/apache2/mod_passenger.so
+<IfModule mod_passenger.c>
+  PassengerRoot /usr/local/rbenv/versions/2.4.4/lib/ruby/gems/2.4.0/gems/passenger-6.0.2
+  PassengerDefaultRuby /usr/local/rbenv/versions/2.4.4/bin/ruby
+</IfModule>
+--------------------------------------
+
+systemctl start httpd.service;
+systemctl enable httpd.service
+
+chown -R apache:apache /var/lib/redmine
+
+nano /etc/httpd/conf/httpd.conf
+--------------------------------------
+#DocumentRoot "/var/www/html"
+DocumentRoot "/var/lib/redmine/public"
+--------------------------------------
+
+systemctl restart httpd.service
+
+cd /etc/httpd/conf.d
+ls *.conf
+mv welcome.conf welcome.conf.bak
+systemctl restart httpd.service
+
+
+
+
+[root@redmine ~]# vi /etc/httpd/conf/httpd.conf
+
+    115 # DocumentRoot: The directory out of which you will serve your
+    116 # documents. By default, all requests are taken from this directory, but
+    117 # symbolic links and aliases may be used to point to other locations.
+    118 #
+    119 #DocumentRoot "/var/www/html"
+    120 DocumentRoot "/var/lib/redmine/public"
+
+[root@redmine ~]# systemctl restart httpd.service
+
+
+-----------------------------
+自動インストール(うまくいかない)
+
+/etc/sysconfig/selinuxを開きSELINUX=disableに変更
+
+yum update -y 
+
+yum install -y epel-release
+yum install -y ansible
+yum install -y git nano bind-utils zip unzip
+
+
+host rubygems.org
+nano /etc/hosts
+以下追記
+
+151.101.192.70  rubygems.org
+151.101.0.70    rubygems.org
+151.101.64.70   rubygems.org
+151.101.128.70  rubygems.org
+
+
+
+https://ja.stackoverflow.com/questions/44663/gem-update-system%E3%81%8C%E3%82%BF%E3%82%A4%E3%83%A0%E3%82%A2%E3%82%A6%E3%83%88%E3%81%97%E3%81%BE%E3%81%99
+
+【方法】
+sysctl.conf を開く
+nano /etc/sysctl.conf
+
+追記
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+
+
+④設定を反映
+sysctl -p
+
+※or再起動
+
+⑤IPv6 が存在しないことを確認
+ip a
+
+git clone https://github.com/farend/redmine-centos-ansible.git
+
+
+
+
+cd redmine-centos-ansible
+nano group_vars/redmine-servers
+パスワード変更
+cd redmine-centos-ansible
+sudo ansible-playbook -i hosts site.yml
